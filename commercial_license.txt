@@ -1,0 +1,20 @@
+Commercial Licensing for Constellation Parser Suite
+
+Constellation Parser Suite is available under dual licensing:
+
+1. PolyForm Noncommercial 1.0.0 (default, free)
+2. Commercial license (paid)
+
+A commercial license is required for:
+
+- Use inside any business, enterprise, or for-profit organization  
+- Embedding the software into products or services  
+- Using Constellation to generate datasets, tools, or derived works for commercial use  
+- Use in organizations with more than 50 employees  
+- Use in systems generating revenue or deployed to customers  
+
+Commercial licenses start at $299 for small teams, with custom pricing for enterprises.
+
+For inquiries:
+Email: <lixil_ii_lixil@proton.me>
+Subject: “Constellation Parser Suite — Commercial License Request” 
