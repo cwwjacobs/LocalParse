@@ -224,3 +224,15 @@ test("the checked-in sample files parse strictly clean", () => {
     assert.equal(jsonl.type, "jsonl");
     assert.equal(jsonl.data.length, 3);
 });
+
+
+test("explicit JSON rejects multiple documents without partial recovery", () => {
+    const result = parseJSON('{"a":1}\n{"b":2}', { format: "json" });
+    assert.equal(result.success, false);
+    assert.equal(result.partial, false);
+    assert.equal(result.data, null);
+});
+
+test("explicit JSONL preserves one row as an array", () => {
+    assert.deepEqual(parseJSON('42', { format: "jsonl" }).data, [42]);
+});

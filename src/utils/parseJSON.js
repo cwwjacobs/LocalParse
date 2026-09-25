@@ -41,22 +41,36 @@ export function parseJSON(text, options = {}) {
         };
     }
 
-    // First, try to parse as regular JSON
-    try {
-        const data = JSON.parse(text);
-        return {
-            type: 'json',
-            data: data,
-            success: true,
-            partial: false,
-            aborted: false,
-            error: null,
-            errors: [],
-            totalRows: 1,
-            validRows: 1
-        };
-    } catch (jsonError) {
-        // Not a single JSON document; fall through to JSONL.
+    // Explicit formats never fall back to another parser. Auto preserves the
+    // utility API for callers without a filename; FileLoader always supplies it.
+    const format = options.format || "auto";
+    if (!["auto", "json", "jsonl"].includes(format)) {
+        throw new TypeError(`Unsupported JSON format: ${format}`);
+    }
+    if (format !== "jsonl") {
+        try {
+            const data = JSON.parse(text);
+            return {
+                type: 'json',
+                data: data,
+                success: true,
+                partial: false,
+                aborted: false,
+                error: null,
+                errors: [],
+                totalRows: 1,
+                validRows: 1
+            };
+        } catch (jsonError) {
+            if (format === "json") {
+                return {
+                    type: "error", data: null, success: false, partial: false,
+                    aborted: false, error: `Invalid JSON document: ${jsonError.message}`,
+                    errors: [], totalRows: 1, validRows: 0
+                };
+            }
+            // Auto mode only: not a single JSON document; try JSONL.
+        }
     }
 
     // JSONL: every nonblank line must be valid JSON. A line that fails to

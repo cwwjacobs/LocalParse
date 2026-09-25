@@ -85,7 +85,7 @@ export default class FileLoader {
             const text = await file.text();
 
             // Parse JSON/JSONL (strict contract: success means zero errors)
-            const result = parseJSON(text, { signal: controller.signal });
+            const result = parseJSON(text, { signal: controller.signal, format: ext });
 
             if (result.aborted) {
                 // Superseded by a newer load; never surface as success.

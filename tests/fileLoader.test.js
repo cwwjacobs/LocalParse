@@ -36,7 +36,7 @@ test("malformed strict JSON is rejected and imports nothing", async () => {
     assert.equal(app.eventsOf("partial-available").length, 0);
     const errors = app.eventsOf("error");
     assert.equal(errors.length, 1);
-    assert.match(errors[0].payload, /line 1/);
+    assert.match(errors[0].payload, /Invalid JSON document/);
 });
 
 test("REGRESSION: mixed JSONL no longer silently loads the valid subset", async () => {
@@ -173,4 +173,25 @@ test("a file read failure surfaces as an error event", async () => {
 
     assert.equal(app.data, null);
     assert.match(app.eventsOf("error")[0].payload, /read fail/);
+});
+
+for (const mode of ["strict", "recovery"]) {
+    test(`malformed pretty JSON never becomes JSONL recovery in ${mode} mode`, async () => {
+        const app = makeApp();
+        const loader = new FileLoader(app);
+        await loader.loadFile(makeFile("broken.JSON", '[\n{"a":1}\nBROKEN\n]'), { mode });
+        assert.equal(app.data, null);
+        assert.equal(loader.pendingRecovery, null);
+        assert.equal(app.eventsOf("partial-available").length, 0);
+        assert.equal(app.eventsOf("data-loaded").length, 0);
+        assert.match(app.eventsOf("error")[0].payload, /Invalid JSON document/);
+    });
+}
+
+test("extension selects JSONL even for a single valid row", async () => {
+    const app = makeApp();
+    const loader = new FileLoader(app);
+    await loader.loadFile(makeFile("one.JSONL", '{"a":1}'));
+    assert.deepEqual(app.data, [{ a: 1 }]);
+    assert.equal(app.eventsOf("data-loaded")[0].payload.type, "jsonl");
 });
