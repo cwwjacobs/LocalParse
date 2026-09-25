@@ -9,6 +9,7 @@ import Exporter from "./components/exporter.js";
 class App {
     constructor() {
         this.data = null;
+        this.partial = null; // getPartialInfo() output for recovery imports
         this.fileName = "";
         this.listeners = {}; // event bus
     }
@@ -29,8 +30,9 @@ class App {
     // --------------------------
     // STATE MANAGEMENT
     // --------------------------
-    setData(newData) {
+    setData(newData, partial = null) {
         this.data = newData;
+        this.partial = partial;
     }
 
     setFileName(name) {
@@ -65,6 +67,12 @@ class App {
 
         // Error handler
         this.on("error", (msg) => this.handleError(msg));
+
+        // Clear resets all loaded state so stale data cannot be exported
+        this.on("clear-all", () => {
+            this.setData(null, null);
+            this.setFileName("");
+        });
 
         console.log("✅ Application ready!");
     }

@@ -19,6 +19,12 @@
         <div class="section-title">Load File</div>
         <button id="load-btn">Choose File</button>
         <input type="file" id="file-input" accept=".json,.jsonl" hidden />
+
+        <div id="recovery-panel" hidden>
+          <div class="section-title">Partial Import</div>
+          <p id="recovery-info"></p>
+          <button id="recovery-load-btn">Load valid rows only</button>
+        </div>
       </aside>
 
       <main id="viewer"></main>
