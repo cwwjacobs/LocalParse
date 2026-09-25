@@ -61,7 +61,8 @@ export default class Navbar {
     updateTitle() {
         const fileNameElement = document.getElementById("file-name");
         if (fileNameElement) {
-            fileNameElement.textContent = this.fileName ? `(${this.fileName})` : "";
+            const partialTag = this.app.partial ? " - PARTIAL IMPORT" : "";
+            fileNameElement.textContent = this.fileName ? `(${this.fileName}${partialTag})` : "";
         }
     }
 }

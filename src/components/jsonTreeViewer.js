@@ -10,6 +10,7 @@ export default class JSONTreeViewer {
         this.app = app;
         this.element = null;
         this.data = null;
+        this.resultInfo = null;
         this.expandedPaths = new Set();
         this.currentPath = [];
     }
@@ -25,7 +26,7 @@ export default class JSONTreeViewer {
     }
 
     render(result, clearExpanded = false) {
-        if (!result || !result.success) {
+        if (!result || (!result.success && !result.partial)) {
             this.element.innerHTML = `
                 <div class="error">
                     <strong>Error:</strong> ${result?.error || 'Failed to load data'}
@@ -35,10 +36,22 @@ export default class JSONTreeViewer {
         }
 
         this.data = result.data;
+        this.resultInfo = {
+            type: result.type,
+            partial: Boolean(result.partial),
+            errors: result.errors || []
+        };
         if (clearExpanded) {
             this.expandedPaths.clear();
             this.currentPath = [];
         }
+
+        const partialStat = this.resultInfo.partial
+            ? `<div class="stat-item">
+                    <span class="stat-label">Partial:</span>
+                    <span class="stat-value">yes - skipped line(s) ${this.formatSkippedLines(this.resultInfo.errors)}</span>
+                </div>`
+            : '';
 
         const html = `
             <div class="breadcrumbs">
@@ -57,6 +70,7 @@ export default class JSONTreeViewer {
                     <span class="stat-label">Items:</span>
                     <span class="stat-value">${countItems(this.data)}</span>
                 </div>
+                ${partialStat}
             </div>
             <div class="json-container">
                 ${this.renderValue(this.data, [], 0)}
@@ -65,6 +79,12 @@ export default class JSONTreeViewer {
 
         this.element.innerHTML = html;
         this.attachEvents();
+    }
+
+    formatSkippedLines(errors) {
+        const lines = errors.map(e => e.line);
+        const shown = lines.slice(0, 20).join(', ');
+        return lines.length > 20 ? `${shown}, ... (+${lines.length - 20} more)` : shown;
     }
 
     renderValue(value, path, depth) {
@@ -182,7 +202,16 @@ export default class JSONTreeViewer {
                 } else {
                     this.expandedPaths.add(path);
                 }
-                this.render({ success: true, data: this.data, type: 'json' }, false); // Don't clear expanded paths
+                // Re-render with the remembered result info so partial
+                // status survives expand/collapse.
+                const info = this.resultInfo || { type: 'json', partial: false, errors: [] };
+                this.render({
+                    success: !info.partial,
+                    partial: info.partial,
+                    data: this.data,
+                    type: info.type,
+                    errors: info.errors
+                }, false); // Don't clear expanded paths
             });
         });
     }
