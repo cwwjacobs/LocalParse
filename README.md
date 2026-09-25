@@ -19,6 +19,8 @@ When you need to inspect structured data quickly, most tools either require an i
 - **JSON and JSONL support**
 - **Local-first workflow** with no uploads
 - **Drag-and-drop loading** and file picker support
+- **Strict loading by default** with line-numbered errors for invalid rows
+- **Explicit partial-import recovery** that labels recovered data and marks exports as partial
 - **Expandable tree viewer** for nested objects and arrays
 - **Basic file stats** for format, root type, and item count
 - **Export to JSON or JSONL**
@@ -69,6 +71,28 @@ You can also use another static server, such as `npx http-server`.
 4. Export the loaded data as JSON or JSONL if needed.
 5. Click **Clear** to reset the viewer.
 
+## Import modes
+
+Loading is **strict by default**: a file is only imported when every
+nonblank JSONL row is valid. If any row fails, the file is rejected with
+an error naming the exact line numbers, and nothing is imported or
+exported from it.
+
+If some rows are valid, a **Partial Import** panel appears in the sidebar
+listing the skipped line numbers. Clicking **Load valid rows only** is an
+explicit opt-in recovery: the valid rows are imported, the file name is
+labeled as a partial import, and any export of it is marked partial (see
+below).
+
+## Tests
+
+Functional tests run under Node's built-in test runner with no external
+dependencies:
+
+```bash
+npm test
+```
+
 ## Project structure
 
 ```text
@@ -81,6 +105,8 @@ localparse/
 │   ├── app.js
 │   ├── components/
 │   └── utils/
+├── tests/
+├── package.json
 ├── LICENSE
 ├── commercial_license.txt
 └── USAGE.md
