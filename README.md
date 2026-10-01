@@ -61,6 +61,13 @@ Then open `http://localhost:8080` in your browser.
 
 You can also use another static server, such as `npx http-server`.
 
+### Run regression tests
+
+With Node.js 22 or newer, run `npm test`. The tests use Node's built-in test runner;
+no dependency installation or build step is needed. They cover parsing, component
+state and event wiring, safe tree paths, and export content. Browser interaction
+and actual download behavior should also be checked in a browser.
+
 ## How to use
 
 1. Click **Load File** or drag a `.json` or `.jsonl` file into the sidebar.

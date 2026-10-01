@@ -4,6 +4,7 @@ export default class FileLoader {
     constructor(app) {
         this.app = app;
         this.input = null;
+        this.loadVersion = 0;
     }
 
     mount() {
@@ -46,9 +47,15 @@ export default class FileLoader {
         }
 
         this.app.on("open-file-dialog", () => this.input.click());
+        this.app.on("clear-all", () => {
+            this.input.value = "";
+            // Ignore any file read that was still pending when Clear was clicked.
+            this.loadVersion++;
+        });
     }
 
     async loadFile(file) {
+        const loadVersion = ++this.loadVersion;
         try {
             // Check file extension
             const ext = file.name.split('.').pop().toLowerCase();
@@ -59,6 +66,7 @@ export default class FileLoader {
 
             // Read file content
             const text = await file.text();
+            if (loadVersion !== this.loadVersion) return;
             
             // Parse JSON/JSONL
             const result = parseJSON(text);
@@ -74,6 +82,7 @@ export default class FileLoader {
             this.app.emit("data-loaded", result);
 
         } catch (err) {
+            if (loadVersion !== this.loadVersion) return;
             console.error("[FileLoader] Error:", err);
             this.app.emit("error", `Failed to load file: ${err.message}`);
         }

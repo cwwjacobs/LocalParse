@@ -6,11 +6,15 @@ import FileLoader from "./components/fileLoader.js";
 import JSONTreeViewer from "./components/jsonTreeViewer.js";
 import Exporter from "./components/exporter.js";
 
-class App {
+export default class App {
     constructor() {
         this.data = null;
         this.fileName = "";
         this.listeners = {}; // event bus
+        this.on("clear-all", () => {
+            this.data = null;
+            this.fileName = "";
+        });
     }
 
     // --------------------------
@@ -73,7 +77,7 @@ class App {
 // --------------------------
 // BOOTSTRAP APP
 // --------------------------
-document.addEventListener("DOMContentLoaded", () => {
+if (typeof document !== "undefined") document.addEventListener("DOMContentLoaded", () => {
     const app = new App();
     window.LocalParseApp = app; // for debugging in browser console
     app.init();

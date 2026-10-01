@@ -2,16 +2,24 @@ export default class Exporter {
     constructor(app) {
         this.app = app;
         this.data = null;
+        this.hasData = false;
     }
 
     mount() {
-        this.app.on("data-loaded", (result) => this.data = result.data);
+        this.app.on("data-loaded", (result) => {
+            this.data = result.data;
+            this.hasData = true;
+        });
+        this.app.on("clear-all", () => {
+            this.data = null;
+            this.hasData = false;
+        });
         this.app.on("export-json", () => this.exportJSON());
         this.app.on("export-jsonl", () => this.exportJSONL());
     }
 
     exportJSON() {
-        if (!this.data) {
+        if (!this.hasData) {
             alert("No data available to export.");
             return;
         }
@@ -25,7 +33,7 @@ export default class Exporter {
     }
 
     exportJSONL() {
-        if (!this.data) {
+        if (!this.hasData) {
             alert("No data available to export.");
             return;
         }
