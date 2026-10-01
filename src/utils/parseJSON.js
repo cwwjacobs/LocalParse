@@ -14,15 +14,17 @@ export function parseJSON(text) {
             };
         } catch (jsonError) {
             // If JSON parsing fails, try JSONL (JSON Lines)
-            const lines = text.split('\n').filter(line => line.trim());
+            const lines = text.split('\n');
             const parsed = [];
             
             for (let i = 0; i < lines.length; i++) {
+                // Keep physical line numbers, including blank lines, for diagnostics.
+                if (!lines[i].trim()) continue;
                 try {
                     parsed.push(JSON.parse(lines[i]));
                 } catch (lineError) {
-                    // Skip invalid lines but continue
-                    console.warn(`Skipping invalid JSON on line ${i + 1}`);
+                    // Never present a partial dataset as a successful parse.
+                    throw new Error(`Invalid JSONL on line ${i + 1}: ${lineError.message}`);
                 }
             }
             

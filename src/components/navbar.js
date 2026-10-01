@@ -20,6 +20,10 @@ export default class Navbar {
             this.fileName = this.app.fileName || "";
             this.updateTitle();
         });
+        this.app.on("clear-all", () => {
+            this.fileName = "";
+            this.updateTitle();
+        });
     }
 
     render() {
@@ -52,8 +56,6 @@ export default class Navbar {
             ?.addEventListener("click", () => {
                 if (confirm("Clear all data?")) {
                     this.app.emit("clear-all");
-                    this.fileName = "";
-                    this.updateTitle();
                 }
             });
     }

@@ -50,6 +50,8 @@ Downloads the currently loaded data as JSONL.
 ## Clearing the viewer
 
 Click **Clear** to remove the current dataset from the interface.
+This also resets the file selection and export data. A pending file read cannot
+restore data after it has been cleared.
 
 ## Supported file types
 
@@ -62,6 +64,10 @@ Click **Clear** to remove the current dataset from the interface.
 - Confirm the file extension is `.json` or `.jsonl`.
 - Confirm the file content is valid JSON or JSONL.
 - Try opening the file in a text editor to inspect formatting errors.
+- JSONL loading stops at the first invalid nonblank line and reports its original
+  line number. No partial dataset is loaded. Blank lines are ignored.
+- If a replacement file fails to load, the previous successfully loaded file stays
+  visible and remains the export source.
 
 ### Export does not work
 - Check whether your browser is blocking downloads.

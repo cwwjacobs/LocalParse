@@ -10,6 +10,7 @@ export default class JSONTreeViewer {
         this.app = app;
         this.element = null;
         this.data = null;
+        this.format = null;
         this.expandedPaths = new Set();
         this.currentPath = [];
     }
@@ -28,13 +29,14 @@ export default class JSONTreeViewer {
         if (!result || !result.success) {
             this.element.innerHTML = `
                 <div class="error">
-                    <strong>Error:</strong> ${result?.error || 'Failed to load data'}
+                    <strong>Error:</strong> ${this.escapeHtml(result?.error || 'Failed to load data')}
                 </div>
             `;
             return;
         }
 
         this.data = result.data;
+        this.format = result.type;
         if (clearExpanded) {
             this.expandedPaths.clear();
             this.currentPath = [];
@@ -42,7 +44,7 @@ export default class JSONTreeViewer {
 
         const html = `
             <div class="breadcrumbs">
-                <span class="breadcrumb active" data-path="">Root</span>
+                <span class="breadcrumb active" data-path="[]">Root</span>
             </div>
             <div class="stats-panel">
                 <div class="stat-item">
@@ -69,7 +71,7 @@ export default class JSONTreeViewer {
 
     renderValue(value, path, depth) {
         const type = getValueType(value);
-        const pathKey = path.join('.');
+        const pathKey = JSON.stringify(path);
         const isExpanded = this.expandedPaths.has(pathKey);
 
         if (type === 'object' || type === 'array') {
@@ -85,7 +87,7 @@ export default class JSONTreeViewer {
             // Opening bracket with expand/collapse
             html += `<div class="json-line">`;
             html += `<span class="json-indent" style="width: ${depth * 20}px"></span>`;
-            html += `<span class="json-expand" data-path="${pathKey}">${isExpanded ? '▼' : '▶'}</span>`;
+            html += `<span class="json-expand" data-path="${this.escapeHtml(pathKey)}">${isExpanded ? '▼' : '▶'}</span>`;
             html += `<span class="json-bracket">${bracket[0]}</span>`;
             if (!isExpanded) {
                 html += `<span class="json-collapsed"> ${count} items </span>`;
@@ -97,7 +99,7 @@ export default class JSONTreeViewer {
             if (isExpanded) {
                 for (const [key, val] of entries) {
                     const newPath = [...path, key];
-                    const childPathKey = newPath.join('.');
+                    const childPathKey = JSON.stringify(newPath);
                     
                     html += `<div class="json-line">`;
                     html += `<span class="json-indent" style="width: ${(depth + 1) * 20}px"></span>`;
@@ -106,7 +108,7 @@ export default class JSONTreeViewer {
                     if (childType === 'object' || childType === 'array') {
                         const childCount = countItems(val);
                         const childExpanded = this.expandedPaths.has(childPathKey);
-                        html += `<span class="json-expand" data-path="${childPathKey}">${childExpanded ? '▼' : '▶'}</span>`;
+                        html += `<span class="json-expand" data-path="${this.escapeHtml(childPathKey)}">${childExpanded ? '▼' : '▶'}</span>`;
                     } else {
                         html += `<span class="json-expand" style="visibility: hidden">•</span>`;
                     }
@@ -136,7 +138,7 @@ export default class JSONTreeViewer {
 
     renderInlineValue(value, path, depth) {
         const type = getValueType(value);
-        const pathKey = path.join('.');
+        const pathKey = JSON.stringify(path);
 
         if (type === 'object' || type === 'array') {
             const count = countItems(value);
@@ -173,16 +175,16 @@ export default class JSONTreeViewer {
 
     attachEvents() {
         // Expand/collapse toggles
-        const expanders = this.element.querySelectorAll('.json-expand');
+        const expanders = this.element.querySelectorAll('.json-expand[data-path]');
         expanders.forEach(expander => {
             expander.addEventListener('click', (e) => {
-                const path = e.target.dataset.path;
+                const path = e.currentTarget.dataset.path;
                 if (this.expandedPaths.has(path)) {
                     this.expandedPaths.delete(path);
                 } else {
                     this.expandedPaths.add(path);
                 }
-                this.render({ success: true, data: this.data, type: 'json' }, false); // Don't clear expanded paths
+                this.render({ success: true, data: this.data, type: this.format }, false); // Don't clear expanded paths
             });
         });
     }
@@ -190,13 +192,14 @@ export default class JSONTreeViewer {
     clear() {
         this.element.innerHTML = '<div class="empty">No data loaded. Click "Load File" to begin.</div>';
         this.data = null;
+        this.format = null;
         this.expandedPaths.clear();
         this.currentPath = [];
     }
 
     escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+        // Safe in both text content and quoted HTML attributes.
+        const entities = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+        return String(text).replace(/[&<>"']/g, char => entities[char]);
     }
 }
